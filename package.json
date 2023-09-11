@@ -10,17 +10,8 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "tape": "tape 'lib/**/*.test.js'",
-    "test": "npm run --silent tape | faucet",
-    "coverage": "nyc --reporter=html --reporter=text npm --silent run tape",
-    "coveralls": "nyc report --reporter=lcov",
+    "test": "node --test",
     "benchmark": "node benchmark"
-  },
-  "nyc": {
-    "exclude": [
-      "node_modules",
-      "lib/**/*.test.js"
-    ]
   },
   "engines": {
     "node": ">= 16"
@@ -33,7 +24,7 @@
     "fast"
   ],
   "files": [
-    "lib/**/*"
+    "lib"
   ],
   "author": {
     "name": "Mattéo Delabre",
@@ -44,11 +35,7 @@
     "benchmark": "^2.1.4",
     "common-tags": "^1.8.2",
     "eslint": "^8.18.0",
-    "faucet": "0.0.1",
-    "lodash.uniq": "^4.5.0",
-    "nyc": "^15.1.0",
-    "tap-spec": "^5.0.0",
-    "tape": "^5.5.3"
+    "lodash.uniq": "^4.5.0"
   },
   "dependencies": {
     "readable-stream": "^4.0.0"

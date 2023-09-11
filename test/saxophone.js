@@ -1,9 +1,11 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+
 const {Readable} = require('readable-stream');
-const test = require('tape');
 const uniq = require('lodash.uniq');
 const tags = require('common-tags');
 
-const Saxophone = require('./');
+const Saxophone = require('../lib/saxophone');
 
 /**
  * Verify that an XML text is parsed as the specified stream of events.
@@ -12,13 +14,12 @@ const Saxophone = require('./');
  * @param xml XML string or array of XML chunks.
  * @param events Sequence of events that must be emitted in order.
  */
-const expectEvents = (assert, xml, events) => {
+const expectEvents = (xml, events) => {
     let eventsIndex = 0;
     const parser = new Saxophone();
 
     const finish = () => {
         assert.equal(eventsIndex, events.length, 'should process all events');
-        assert.end();
     };
 
     uniq(events.map(([name]) => name)).forEach(eventName => {
@@ -68,36 +69,36 @@ const expectEvents = (assert, xml, events) => {
     parser.end();
 };
 
-test('should parse comments', assert => {
-    expectEvents(assert,
+test('should parse comments', () => {
+    expectEvents(
         '<!-- this is a comment -->',
         [['comment', {contents: ' this is a comment '}]]
     );
 });
 
-test('should parse comments between two chunks', assert => {
-    expectEvents(assert,
+test('should parse comments between two chunks', () => {
+    expectEvents(
         ['<', '!', '-', '-', ' this is a comment -->'],
         [['comment', {contents: ' this is a comment '}]]
     );
 });
 
-test('should parse comments ending between two chunks', assert => {
-    expectEvents(assert,
+test('should parse comments ending between two chunks', () => {
+    expectEvents(
         ['<!-- this is a comment --', '>'],
         [['comment', {contents: ' this is a comment '}]]
     );
 });
 
-test('should not parse unclosed comments', assert => {
-    expectEvents(assert,
+test('should not parse unclosed comments', () => {
+    expectEvents(
         '<!-- this is a comment ->',
         [['error', new Error('Unclosed comment')]]
     );
 });
 
-test('should not parse invalid comments', assert => {
-    expectEvents(assert,
+test('should not parse invalid comments', () => {
+    expectEvents(
         '<!-- this is an -- invalid comment ->',
         [[
             'error',
@@ -106,50 +107,50 @@ test('should not parse invalid comments', assert => {
     );
 });
 
-test('should parse CDATA sections', assert => {
-    expectEvents(assert,
+test('should parse CDATA sections', () => {
+    expectEvents(
         '<![CDATA[this is a c&data s<>ction]]>',
         [['cdata', {contents: 'this is a c&data s<>ction'}]]
     );
 });
 
-test('should parse CDATA sections between two chunks', assert => {
-    expectEvents(assert,
+test('should parse CDATA sections between two chunks', () => {
+    expectEvents(
         ['<', '!', '[', 'C', 'D', 'A', 'T', 'A', '[', 'contents]]>'],
         [['cdata', {contents: 'contents'}]]
     );
 });
 
-test('should not parse invalid CDATA sections', assert => {
-    expectEvents(assert,
+test('should not parse invalid CDATA sections', () => {
+    expectEvents(
         ['<![CDAthis is NOT a c&data s<>ction]]>'],
         [['error', new Error('Unrecognized sequence: <![')]]
     );
 });
 
-test('should not parse unclosed CDATA sections', assert => {
-    expectEvents(assert,
+test('should not parse unclosed CDATA sections', () => {
+    expectEvents(
         '<![CDATA[this is a c&data s<>ction]>',
         [['error', new Error('Unclosed CDATA section')]]
     );
 });
 
-test('should parse processing instructions', assert => {
-    expectEvents(assert,
+test('should parse processing instructions', () => {
+    expectEvents(
         '<?xml version="1.0" encoding="UTF-8" ?>',
         [['processinginstruction', {contents: 'xml version="1.0" encoding="UTF-8" '}]]
     );
 });
 
-test('should not parse unclosed processing instructions', assert => {
-    expectEvents(assert,
+test('should not parse unclosed processing instructions', () => {
+    expectEvents(
         '<?xml version="1.0" encoding="UTF-8">',
         [['error', new Error('Unclosed processing instruction')]]
     );
 });
 
-test('should parse simple tags', assert => {
-    expectEvents(assert,
+test('should parse simple tags', () => {
+    expectEvents(
         '<tag></tag>',
         [
             ['tagopen', {name: 'tag', attrs: '', isSelfClosing: false}],
@@ -158,22 +159,22 @@ test('should parse simple tags', assert => {
     );
 });
 
-test('should not parse unclosed opening tags', assert => {
-    expectEvents(assert,
+test('should not parse unclosed opening tags', () => {
+    expectEvents(
         '<tag',
         [['error', new Error('Unclosed tag')]]
     );
 });
 
-test('should not parse unclosed tags 2', assert => {
-    expectEvents(assert,
+test('should not parse unclosed tags 2', () => {
+    expectEvents(
         '<tag>',
         [['error', new Error('Unclosed tags: tag')]]
     );
 });
 
-test('should not parse unclosed tags 3', assert => {
-    expectEvents(assert,
+test('should not parse unclosed tags 3', () => {
+    expectEvents(
         '<closed><unclosed></closed>',
         [
             ['tagopen', {name: 'closed', attrs: '', isSelfClosing: false}],
@@ -183,29 +184,29 @@ test('should not parse unclosed tags 3', assert => {
     );
 });
 
-test('should not parse DOCTYPEs', assert => {
-    expectEvents(assert,
+test('should not parse DOCTYPEs', () => {
+    expectEvents(
         '<!DOCTYPE html>',
         [['error', new Error('Unrecognized sequence: <!D')]]
     );
 });
 
-test('should not parse invalid tags', assert => {
-    expectEvents(assert,
+test('should not parse invalid tags', () => {
+    expectEvents(
         '< invalid>',
         [['error', new Error('Tag names may not start with whitespace')]]
     );
 });
 
-test('should parse self-closing tags', assert => {
-    expectEvents(assert,
+test('should parse self-closing tags', () => {
+    expectEvents(
         '<test />',
         [['tagopen', {name: 'test', attrs: ' ', isSelfClosing: true}]]
     );
 });
 
-test('should parse closing tags', assert => {
-    expectEvents(assert,
+test('should parse closing tags', () => {
+    expectEvents(
         '<closed></closed>',
         [
             ['tagopen', {name: 'closed', attrs: '', isSelfClosing: false}],
@@ -214,15 +215,15 @@ test('should parse closing tags', assert => {
     );
 });
 
-test('should not parse unclosed closing tags', assert => {
-    expectEvents(assert,
+test('should not parse unclosed closing tags', () => {
+    expectEvents(
         '</closed',
         [['error', new Error('Unclosed tag')]]
     );
 });
 
-test('should parse tags with attributes', assert => {
-    expectEvents(assert,
+test('should parse tags with attributes', () => {
+    expectEvents(
         '<tag first="one" second="two"  third="three " /><other attr="value"></other>',
         [
             ['tagopen', {name: 'tag', attrs: ' first="one" second="two"  third="three " ', isSelfClosing: true}],
@@ -232,8 +233,8 @@ test('should parse tags with attributes', assert => {
     );
 });
 
-test('should parse tags with attributes containing ">"', assert => {
-    expectEvents(assert,
+test('should parse tags with attributes containing ">"', () => {
+    expectEvents(
         '<tag assert="5 > 1" />',
         [
             ['tagopen', {name: 'tag', attrs: ' assert="5 > 1" ', isSelfClosing: true}],
@@ -241,8 +242,8 @@ test('should parse tags with attributes containing ">"', assert => {
     );
 });
 
-test('should parse text nodes', assert => {
-    expectEvents(assert,
+test('should parse text nodes', () => {
+    expectEvents(
         '<textarea> this\nis\na\r\n\ttextual\ncontent  </textarea>',
         [
             ['tagopen', {name: 'textarea', attrs: '', isSelfClosing: false}],
@@ -252,8 +253,8 @@ test('should parse text nodes', assert => {
     );
 });
 
-test('should parse text nodes outside of the root element', assert => {
-    expectEvents(assert,
+test('should parse text nodes outside of the root element', () => {
+    expectEvents(
         'before<root>inside</root>after',
         [
             ['text', {contents: 'before'}],
@@ -265,8 +266,8 @@ test('should parse text nodes outside of the root element', assert => {
     );
 });
 
-test('should parse a complete document', assert => {
-    expectEvents(assert,
+test('should parse a complete document', () => {
+    expectEvents(
         tags.stripIndent`
             <?xml version="1.0" encoding="UTF-8" ?>
             <persons>
@@ -294,7 +295,7 @@ test('should parse a complete document', assert => {
     );
 });
 
-test('streaming and full parse should result in the same events', assert => {
+test('streaming and full parse should result in the same events', () => {
     const xml = tags.stripIndent`
         <?xml version="1.0" encoding="UTF-8" ?>
         <persons>
@@ -348,7 +349,6 @@ test('streaming and full parse should result in the same events', assert => {
 
         if (finished2) {
             assert.deepEqual(events1, events2);
-            assert.end();
         }
     });
 
@@ -357,7 +357,6 @@ test('streaming and full parse should result in the same events', assert => {
 
         if (finished1) {
             assert.deepEqual(events1, events2);
-            assert.end();
         }
     });
 });
