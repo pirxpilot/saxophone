@@ -18,7 +18,7 @@ failsafe.commit();
 // test file:
 const xml = fs.readFileSync(path.join(__dirname, 'fixture.xml')).toString();
 
-(new Benchmark.Suite)
+(new Benchmark.Suite())
 .add('Saxophone', () => {
     const parser = new Saxophone();
 

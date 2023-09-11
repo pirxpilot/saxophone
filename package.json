@@ -9,7 +9,7 @@
     "url": "https://github.com/matteodelabre/saxophone.git"
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "jshint lib test benchmark",
     "test": "node --test",
     "benchmark": "node benchmark"
   },
@@ -34,7 +34,7 @@
   "devDependencies": {
     "benchmark": "^2.1.4",
     "common-tags": "^1.8.2",
-    "eslint": "^8.18.0",
+    "jshint": "^2.13.6",
     "lodash.uniq": "^4.5.0"
   },
   "dependencies": {
