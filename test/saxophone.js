@@ -73,7 +73,7 @@ test('should not parse unclosed comments', () =>
   expectEvents(
     '<!-- this is a comment ->',
     [
-      ['error', new Error('Unclosed comment')]
+      ['error', { message: 'Unclosed comment' }]
     ]
   ));
 
@@ -83,7 +83,7 @@ test('should not parse invalid comments', () =>
     [
       [
         'error',
-        new Error("Unexpected -- inside comment: '<!-- this is an -- invalid '")
+        { message: "Unexpected -- inside comment: '<!-- this is an -- invalid '" }
       ]
     ]
   ));
@@ -108,7 +108,7 @@ test('should not parse invalid CDATA sections', () =>
   expectEvents(
     ['<![CDAthis is NOT a c&data s<>ction]]>'],
     [
-      ['error', new Error('Unrecognized sequence: <![')]
+      ['error', { message: 'Unrecognized sequence: <![' }]
     ]
   ));
 
@@ -116,7 +116,7 @@ test('should not parse unclosed CDATA sections', () =>
   expectEvents(
     '<![CDATA[this is a c&data s<>ction]>',
     [
-      ['error', new Error('Unclosed CDATA section')]
+      ['error', { message: 'Unclosed CDATA section' }]
     ]
   ));
 
@@ -132,7 +132,7 @@ test('should not parse unclosed processing instructions', () =>
   expectEvents(
     '<?xml version="1.0" encoding="UTF-8">',
     [
-      ['error', new Error('Unclosed processing instruction')]
+      ['error', { message: 'Unclosed processing instruction' }]
     ]
   ));
 
@@ -149,7 +149,7 @@ test('should not parse unclosed opening tags', () =>
   expectEvents(
     '<tag',
     [
-      ['error', new Error('Unclosed tag')]
+      ['error', { message: 'Unclosed tag' }]
     ]
   ));
 
@@ -157,7 +157,7 @@ test('should not parse unclosed tags 2', () =>
   expectEvents(
     '<tag>',
     [
-      ['error', new Error('Unclosed tags: tag')]
+      ['error', { message: 'Unclosed tags: tag' }]
     ]
   ));
 
@@ -167,7 +167,7 @@ test('should not parse unclosed tags 3', () =>
     [
       ['tagopen', { name: 'closed', attrs: '', isSelfClosing: false }],
       ['tagopen', { name: 'unclosed', attrs: '', isSelfClosing: false }],
-      ['error', new Error('Unclosed tag: unclosed')],
+      ['error', { message: 'Unclosed tag: unclosed' }],
     ]
   ));
 
@@ -175,7 +175,7 @@ test('should not parse DOCTYPEs', () =>
   expectEvents(
     '<!DOCTYPE html>',
     [
-      ['error', new Error('Unrecognized sequence: <!D')]
+      ['error', { message: 'Unrecognized sequence: <!D' }]
     ]
   ));
 
@@ -183,7 +183,7 @@ test('should not parse invalid tags', () =>
   expectEvents(
     '< invalid>',
     [
-      ['error', new Error('Tag names may not start with whitespace')]
+      ['error', { message: 'Tag names may not start with whitespace' }]
     ]
   ));
 
@@ -208,7 +208,7 @@ test('should not parse unclosed closing tags', () =>
   expectEvents(
     '</closed',
     [
-      ['error', new Error('Unclosed tag')]
+      ['error', { message: 'Unclosed tag' }]
     ]
   ));
 
