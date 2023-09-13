@@ -1,13 +1,12 @@
-# Saxophone 🎷
+[![NPM version][npm-image]][npm-url]
+[![Build Status][build-image]][build-url]
+[![Dependency Status][deps-image]][deps-url]
 
-Fast and lightweight event-driven streaming XML parser in pure JavaScript.
+# @pirxpilot/Saxophone 🎷
 
-[![npm version](https://img.shields.io/npm/v/saxophone.svg?style=flat-square)](https://www.npmjs.com/package/saxophone)
-[![npm downloads](https://img.shields.io/npm/dm/saxophone.svg?style=flat-square)](https://www.npmjs.com/package/saxophone)
-[![build status](https://img.shields.io/github/workflow/status/matteodelabre/saxophone/test?style=flat-square)](https://github.com/matteodelabre/saxophone/actions)
-[![coverage](https://img.shields.io/coveralls/matteodelabre/saxophone.svg?style=flat-square)](https://coveralls.io/github/matteodelabre/saxophone)
+This is a fork of [Saxophone] - fast and lightweight event-driven streaming XML parser - reimplemented using only browser primitves: `EventTarget` and `WritableStream`
 
-Saxophone is inspired by SAX parsers such as [sax-js](https://github.com/isaacs/sax-js) and [EasySax](https://github.com/vflash/easysax): unlike most XML parsers, it does not create a Document Object Model ([DOM](https://en.wikipedia.org/wiki/Document_Object_Model)) tree as a result of parsing documents.
+[Saxophone] is inspired by SAX parsers such as [sax-js](https://github.com/isaacs/sax-js) and [EasySax](https://github.com/vflash/easysax): unlike most XML parsers, it does not create a Document Object Model ([DOM](https://en.wikipedia.org/wiki/Document_Object_Model)) tree as a result of parsing documents.
 Instead, it emits events for each tag or text node encountered as the parsing goes on, which makes it an online algorithm.
 This means that Saxophone has a low memory footprint, can easily parse large documents, and can parse documents as they come from a stream.
 
@@ -21,39 +20,7 @@ This library works both on Node.JS and recent browsers.
 To install with `npm`:
 
 ```sh
-$ npm install --save saxophone
-```
-
-## Benchmark
-
-This benchmark compares the performance of four of the most popular SAX parsers against Saxophone’s performance while parsing a 21 KB document. Below are the results when run on a Intel® Core™ i7-7500U processor (2.70GHz, 2 physical cores with 2 logical cores each).
-
-Library            | Version | Operations per second (higher is better)
--------------------|--------:|----------------------------------------:
-**Saxophone**      |   0.8.0 |                         **5,608 ±1.97%**
-**EasySax**        |   0.3.2 |                         **8,192 ±2.33%**
-node-expat         |   2.4.0 |                               939 ±0.89%
-libxmljs.SaxParser | 0.19.10 |                               767 ±0.79%
-sax-js             |   1.2.4 |                               771 ±0.82%
-
-```sh
-$ git clone https://github.com/matteodelabre/saxophone.git
-$ cd saxophone
-$ npm install
-$ npm install --no-save easysax node-expat libxmljs sax
-$ npm run benchmark
-```
-
-## Tests and coverage
-
-To run tests and check coverage, use the following commands:
-
-```sh
-$ git clone https://github.com/matteodelabre/saxophone.git
-$ cd saxophone
-$ npm install
-$ npm test
-$ npm run coverage
+$ npm install --save @pirxpilot/saxophone
 ```
 
 ## Examples
@@ -62,24 +29,23 @@ $ npm run coverage
 
 ```js
 const Saxophone = require('saxophone');
-const parser = new Saxophone();
+const target = new EventTarget();
+const parser = new Saxophone(target);
 
 // Called whenever an opening tag is found in the document,
 // such as <example id="1" /> - see below for a list of events
-parser.on('tagopen', tag => {
+target.addEventListener('tagopen', ({ detail: tag }) => {
     console.log(
-        `Open tag "${tag.name}" with attributes: ${JSON.stringify(Saxophone.parseAttrs(tag.attrs))}.`
+        'Open tag %s with attributes: %j',
+        tag.name,
+        Saxophone.parseAttrs(tag.attrs)
     );
-});
-
-// Called when we are done parsing the document
-parser.on('finish', () => {
-    console.log('Parsing finished.');
 });
 
 // Triggers parsing - remember to set up listeners before
 // calling this method
-parser.parse('<root><example id="1" /><example id="2" /></root>');
+await parser.parse('<root><example id="1" /><example id="2" /></root>');
+console.log('Parsing finished.');
 ```
 
 Output:
@@ -97,24 +63,27 @@ Same example as above but with `Stream`s.
 
 ```js
 const Saxophone = require('saxophone');
-const parser = new Saxophone();
+const target = new EventTarget();
+const parser = new Saxophone(target);
 
 // Called whenever an opening tag is found in the document,
 // such as <example id="1" /> - see below for a list of events
-parser.on('tagopen', tag => {
+target.on('tagopen', ({ detail: tag }) => {
     console.log(
-        `Open tag "${tag.name}" with attributes: ${JSON.stringify(Saxophone.parseAttrs(tag.attrs))}.`
+        'Open tag %s with attributes: %j',
+        tag.name,
+        Saxophone.parseAttrs(tag.attrs)
     );
 });
 
-// Called when we are done parsing the document
-parser.on('finish', () => {
-    console.log('Parsing finished.');
-});
+// API returns '<root><example id="1" /><example id="2" /></root>'
 
-// stdin is '<root><example id="1" /><example id="2" /></root>'
-process.stdin.setEncoding('utf8');
-process.stdin.pipe(parser);
+const response = await fetch("https://example.com/api");
+await response.body
+  .pipeThrough(new TextDecoderStream('utf8'))
+  .pipeTo(parser);
+
+console.log('Parsing finished.');
 ```
 
 Output:
@@ -128,13 +97,14 @@ Parsing finished.
 
 ## Documentation
 
-### `new Saxophone()`
+### `new Saxophone(target)`
 
 Creates a new Saxophone parser instance. This object is a writable stream that will emit an event for each tag or node parsed from the incoming data. See [the list of events below.](#events)
 
-### `Saxophone#on()`, `Saxophone#removeListener()`, ...
+Arguments:
 
-Manage event listeners just like with any other event emitter. Saxophone inherits from all `EventEmitter` methods. See the relevant [Node documentation.](https://nodejs.org/api/events.html)
+* `target` is an `EventTarget` on which event handlers can be registered
+
 
 ### `Saxophone#parse(xml)`
 
@@ -144,7 +114,7 @@ Trigger the parsing of a whole document. This method will fire registered listen
 
 Arguments:
 
-* `xml` is an UTF-8 string or a `Buffer` containing the XML that you want to parse.
+* `xml` is a string containing the XML that you want to parse.
 
 This method returns the parser instance.
 
@@ -156,15 +126,7 @@ Parse a chunk of a XML document. This method will fire registered listeners so y
 
 Arguments:
 
-* `xml` is an UTF-8 string or a `Buffer` containing a chunk of the XML that you want to parse.
-
-### `Saxophone#end(xml = "")`
-
-Write an optional last chunk then close the stream. After the stream is closed, a final `finish` event is emitted and no other event will be emitted afterwards. No more data may be written into the stream after closing it.
-
-Arguments:
-
-* `xml` is an UTF-8 string or a `Buffer` containing a chunk of the XML that you want to parse.
+* `xml` is a string containing a chunk of the XML that you want to parse.
 
 ### `Saxophone.parseAttrs(attrs)`
 
@@ -208,9 +170,9 @@ Emitted when a CDATA section (such as `<![CDATA[ contents ]]>`) is parsed. An ob
 
 Emitted when a comment (such as `<!-- contents -->`) is parsed. An object with the `contents` of the comment is passed.
 
-#### `error`
+### Errors
 
-Emitted when a parsing error is encountered while reading the XML stream such that the rest of the XML cannot be correctly interpreted:
+Errors are thrown when a parsing error is encountered while reading the XML stream such that the rest of the XML cannot be correctly interpreted:
 
 * when a DOCTYPE node is found (not supported yet);
 * when a comment node contains the `--` sequence;
@@ -220,9 +182,6 @@ Emitted when a parsing error is encountered while reading the XML stream such th
 
 Because this library's goal is not to provide accurate error reports, the passed error will only contain a short description of the syntax error (without giving the position, for example).
 
-#### `finish`
-
-Emitted after all events, without arguments.
 
 ## Contributions
 
@@ -237,3 +196,17 @@ Thanks to:
 ## License
 
 Released under the MIT license. [See the full license text.](LICENSE)
+
+[Saxophone]: https://npmjs.org/package/saxophone
+
+[npm-image]: https://img.shields.io/npm/v/@pirxpilot/saxophone
+[npm-url]: https://npmjs.org/package/@pirxpilot/saxophone
+
+[build-url]: https://github.com/pirxpilot/saxophone/actions/workflows/check.yaml
+[build-image]: https://img.shields.io/github/actions/workflow/status/pirxpilot/saxophone/check.yaml?branch=main
+
+[build-url]: https://github.com/pirxpilot/saxophone/actions/workflows/check.yaml
+[build-image]: https://img.shields.io/github/actions/workflow/status/pirxpilot/saxophone/check.yaml?branch=main
+
+[deps-image]: https://img.shields.io/librariesio/release/npm/@pirxpilot/saxophone
+[deps-url]: https://libraries.io/npm/@pirxpilot%2Fsaxophone
