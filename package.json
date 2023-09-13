@@ -1,13 +1,10 @@
 {
-  "name": "saxophone",
+  "name": "@pirxpilot/saxophone",
   "description": "Fast and lightweight event-driven XML parser in pure JavaScript",
   "version": "0.8.0",
   "license": "MIT",
   "main": "lib/index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/matteodelabre/saxophone.git"
-  },
+  "repository": "pirxpilot/saxophone",
   "scripts": {
     "lint": "jshint lib test benchmark",
     "test": "node --test",
