@@ -1,7 +1,7 @@
 {
   "name": "@pirxpilot/saxophone",
   "description": "Fast and lightweight event-driven XML parser in pure JavaScript",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "license": "MIT",
   "main": "lib/index.js",
   "repository": "pirxpilot/saxophone",

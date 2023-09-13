@@ -1,5 +1,9 @@
-<!-- vim: set spelllang=en : -->
-# Changelog
+
+1.0.0 / 2023-09-13
+==================
+
+ * rename to @pirxpilot/saxophone
+ * reimplement using WriteableStream and EventTarget
 
 ## v0.8.0
 
