@@ -45,40 +45,40 @@ async function expectEvents(xml, events) {
   }
 }
 
-test('should parse comments', async () =>
-  await expectEvents(
+test('should parse comments', () =>
+  expectEvents(
     '<!-- this is a comment -->',
     [
       ['comment', { contents: ' this is a comment ' }]
     ]
   ));
 
-test('should parse comments between two chunks', async () =>
-  await expectEvents(
+test('should parse comments between two chunks', () =>
+  expectEvents(
     ['<', '!', '-', '-', ' this is a comment -->'],
     [
       ['comment', { contents: ' this is a comment ' }]
     ]
   ));
 
-test('should parse comments ending between two chunks', async () =>
-  await expectEvents(
+test('should parse comments ending between two chunks', () =>
+  expectEvents(
     ['<!-- this is a comment --', '>'],
     [
       ['comment', { contents: ' this is a comment ' }]
     ]
   ));
 
-test('should not parse unclosed comments', async () =>
-  await expectEvents(
+test('should not parse unclosed comments', () =>
+  expectEvents(
     '<!-- this is a comment ->',
     [
       ['error', new Error('Unclosed comment')]
     ]
   ));
 
-test('should not parse invalid comments', async () =>
-  await expectEvents(
+test('should not parse invalid comments', () =>
+  expectEvents(
     '<!-- this is an -- invalid comment ->',
     [
       [
@@ -88,56 +88,56 @@ test('should not parse invalid comments', async () =>
     ]
   ));
 
-test('should parse CDATA sections', async () =>
-  await expectEvents(
+test('should parse CDATA sections', () =>
+  expectEvents(
     '<![CDATA[this is a c&data s<>ction]]>',
     [
       ['cdata', { contents: 'this is a c&data s<>ction' }]
     ]
   ));
 
-test('should parse CDATA sections between two chunks', async () =>
-  await expectEvents(
+test('should parse CDATA sections between two chunks', () =>
+  expectEvents(
     ['<', '!', '[', 'C', 'D', 'A', 'T', 'A', '[', 'contents]]>'],
     [
       ['cdata', { contents: 'contents' }]
     ]
   ));
 
-test('should not parse invalid CDATA sections', async () =>
-  await expectEvents(
+test('should not parse invalid CDATA sections', () =>
+  expectEvents(
     ['<![CDAthis is NOT a c&data s<>ction]]>'],
     [
       ['error', new Error('Unrecognized sequence: <![')]
     ]
   ));
 
-test('should not parse unclosed CDATA sections', async () =>
-  await expectEvents(
+test('should not parse unclosed CDATA sections', () =>
+  expectEvents(
     '<![CDATA[this is a c&data s<>ction]>',
     [
       ['error', new Error('Unclosed CDATA section')]
     ]
   ));
 
-test('should parse processing instructions', async () =>
-  await expectEvents(
+test('should parse processing instructions', () =>
+  expectEvents(
     '<?xml version="1.0" encoding="UTF-8" ?>',
     [
       ['processinginstruction', { contents: 'xml version="1.0" encoding="UTF-8" ' }]
     ]
   ));
 
-test('should not parse unclosed processing instructions', async () =>
-  await expectEvents(
+test('should not parse unclosed processing instructions', () =>
+  expectEvents(
     '<?xml version="1.0" encoding="UTF-8">',
     [
       ['error', new Error('Unclosed processing instruction')]
     ]
   ));
 
-test('should parse simple tags', async () =>
-  await expectEvents(
+test('should parse simple tags', () =>
+  expectEvents(
     '<tag></tag>',
     [
       ['tagopen', { name: 'tag', attrs: '', isSelfClosing: false }],
@@ -145,24 +145,24 @@ test('should parse simple tags', async () =>
     ]
   ));
 
-test('should not parse unclosed opening tags', async () =>
-  await expectEvents(
+test('should not parse unclosed opening tags', () =>
+  expectEvents(
     '<tag',
     [
       ['error', new Error('Unclosed tag')]
     ]
   ));
 
-test('should not parse unclosed tags 2', async () =>
-  await expectEvents(
+test('should not parse unclosed tags 2', () =>
+  expectEvents(
     '<tag>',
     [
       ['error', new Error('Unclosed tags: tag')]
     ]
   ));
 
-test('should not parse unclosed tags 3', async () =>
-  await expectEvents(
+test('should not parse unclosed tags 3', () =>
+  expectEvents(
     '<closed><unclosed></closed>',
     [
       ['tagopen', { name: 'closed', attrs: '', isSelfClosing: false }],
@@ -171,32 +171,32 @@ test('should not parse unclosed tags 3', async () =>
     ]
   ));
 
-test('should not parse DOCTYPEs', async () =>
-  await expectEvents(
+test('should not parse DOCTYPEs', () =>
+  expectEvents(
     '<!DOCTYPE html>',
     [
       ['error', new Error('Unrecognized sequence: <!D')]
     ]
   ));
 
-test('should not parse invalid tags', async () =>
-  await expectEvents(
+test('should not parse invalid tags', () =>
+  expectEvents(
     '< invalid>',
     [
       ['error', new Error('Tag names may not start with whitespace')]
     ]
   ));
 
-test('should parse self-closing tags', async () =>
-  await expectEvents(
+test('should parse self-closing tags', () =>
+  expectEvents(
     '<test />',
     [
       ['tagopen', { name: 'test', attrs: ' ', isSelfClosing: true }]
     ]
   ));
 
-test('should parse closing tags', async () =>
-  await expectEvents(
+test('should parse closing tags', () =>
+  expectEvents(
     '<closed></closed>',
     [
       ['tagopen', { name: 'closed', attrs: '', isSelfClosing: false }],
@@ -204,16 +204,16 @@ test('should parse closing tags', async () =>
     ]
   ));
 
-test('should not parse unclosed closing tags', async () =>
-  await expectEvents(
+test('should not parse unclosed closing tags', () =>
+  expectEvents(
     '</closed',
     [
       ['error', new Error('Unclosed tag')]
     ]
   ));
 
-test('should parse tags with attributes', async () =>
-  await expectEvents(
+test('should parse tags with attributes', () =>
+  expectEvents(
     '<tag first="one" second="two"  third="three " /><other attr="value"></other>',
     [
       ['tagopen', { name: 'tag', attrs: ' first="one" second="two"  third="three " ', isSelfClosing: true }],
@@ -222,16 +222,16 @@ test('should parse tags with attributes', async () =>
     ]
   ));
 
-test('should parse tags with attributes containing ">"', async () =>
-  await expectEvents(
+test('should parse tags with attributes containing ">"', () =>
+  expectEvents(
     '<tag assert="5 > 1" />',
     [
       ['tagopen', { name: 'tag', attrs: ' assert="5 > 1" ', isSelfClosing: true }],
     ]
   ));
 
-test('should parse text nodes', async () =>
-  await expectEvents(
+test('should parse text nodes', () =>
+  expectEvents(
     '<textarea> this\nis\na\r\n\ttextual\ncontent  </textarea>',
     [
       ['tagopen', { name: 'textarea', attrs: '', isSelfClosing: false }],
@@ -240,8 +240,8 @@ test('should parse text nodes', async () =>
     ]
   ));
 
-test('should parse text nodes outside of the root element', async () =>
-  await expectEvents(
+test('should parse text nodes outside of the root element', () =>
+  expectEvents(
     'before<root>inside</root>after',
     [
       ['text', { contents: 'before' }],
@@ -252,8 +252,8 @@ test('should parse text nodes outside of the root element', async () =>
     ]
   ));
 
-test('should parse a complete document', async () =>
-  await expectEvents(
+test('should parse a complete document', () =>
+  expectEvents(
     tags.stripIndent`
             <?xml version="1.0" encoding="UTF-8" ?>
             <persons>
