@@ -20,6 +20,14 @@ test('should normalize numeric character references', () => {
 test('should ignore invalid character entity references', () => {
   assert.equal(Saxophone.parseEntities('&unknown;'), '&unknown;', 'ignore unknown entity references');
   assert.equal(Saxophone.parseEntities('&amp'), '&amp', 'ignore unterminated entity references');
-  assert.equal(Saxophone.parseEntities('&#notanumber;'), '&#notanumber;', 'ignore non-numeric decimal character refrences');
-  assert.equal(Saxophone.parseEntities('&#xnotanumber;'), '&#xnotanumber;', 'ignore non-numeric hexa character refrences');
+  assert.equal(
+    Saxophone.parseEntities('&#notanumber;'),
+    '&#notanumber;',
+    'ignore non-numeric decimal character refrences'
+  );
+  assert.equal(
+    Saxophone.parseEntities('&#xnotanumber;'),
+    '&#xnotanumber;',
+    'ignore non-numeric hexa character refrences'
+  );
 });

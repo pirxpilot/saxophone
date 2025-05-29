@@ -1,7 +1,5 @@
-'use strict';
-
 module.exports = () => {
-  let notFound = [];
+  const notFound = [];
 
   return {
     /**
@@ -32,8 +30,8 @@ module.exports = () => {
       if (notFound.length) {
         console.error(
           '/!\\ To run benchmarks, please install the following ' +
-          'missing modules:\n    npm install --no-save ' +
-          notFound.join(' ')
+            'missing modules:\n    npm install --no-save ' +
+            notFound.join(' ')
         );
         process.exit();
       }

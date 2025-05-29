@@ -1,9 +1,7 @@
-'use strict';
-
 // benchmarking libraries
 const Benchmark = require('benchmark');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const failsafe = require('./require-failsafe')();
 
 // benchmarked libraries
@@ -18,8 +16,8 @@ failsafe.commit();
 // test file:
 const xml = fs.readFileSync(path.join(__dirname, 'fixture.xml')).toString();
 
-(new Benchmark.Suite())
-.add('Saxophone', () => {
+new Benchmark.Suite()
+  .add('Saxophone', () => {
     const parser = new Saxophone();
 
     // force Saxophone to parse attributes and entities
@@ -34,7 +32,7 @@ const xml = fs.readFileSync(path.join(__dirname, 'fixture.xml')).toString();
     const parser = new EasySax();
 
     // force EasySax to parse attributes and entities
-    parser.on('startNode', (elem, attr) => attr());
+    parser.on('startNode', (_elem, attr) => attr());
     parser.on('textNode', (text, uq) => uq(text));
 
     parser.parse(xml);

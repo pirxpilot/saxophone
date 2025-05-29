@@ -46,211 +46,104 @@ async function expectEvents(xml, events) {
 }
 
 test('should parse comments', () =>
-  expectEvents(
-    '<!-- this is a comment -->',
-    [
-      ['comment', { contents: ' this is a comment ' }]
-    ]
-  ));
+  expectEvents('<!-- this is a comment -->', [['comment', { contents: ' this is a comment ' }]]));
 
 test('should parse comments between two chunks', () =>
-  expectEvents(
-    ['<', '!', '-', '-', ' this is a comment -->'],
-    [
-      ['comment', { contents: ' this is a comment ' }]
-    ]
-  ));
+  expectEvents(['<', '!', '-', '-', ' this is a comment -->'], [['comment', { contents: ' this is a comment ' }]]));
 
 test('should parse comments ending between two chunks', () =>
-  expectEvents(
-    ['<!-- this is a comment --', '>'],
-    [
-      ['comment', { contents: ' this is a comment ' }]
-    ]
-  ));
+  expectEvents(['<!-- this is a comment --', '>'], [['comment', { contents: ' this is a comment ' }]]));
 
 test('should not parse unclosed comments', () =>
-  expectEvents(
-    '<!-- this is a comment ->',
-    [
-      ['error', { message: 'Unclosed comment' }]
-    ]
-  ));
+  expectEvents('<!-- this is a comment ->', [['error', { message: 'Unclosed comment' }]]));
 
 test('should not parse invalid comments', () =>
-  expectEvents(
-    '<!-- this is an -- invalid comment ->',
-    [
-      [
-        'error',
-        { message: "Unexpected -- inside comment: '<!-- this is an -- invalid '" }
-      ]
-    ]
-  ));
+  expectEvents('<!-- this is an -- invalid comment ->', [
+    ['error', { message: "Unexpected -- inside comment: '<!-- this is an -- invalid '" }]
+  ]));
 
 test('should parse CDATA sections', () =>
-  expectEvents(
-    '<![CDATA[this is a c&data s<>ction]]>',
-    [
-      ['cdata', { contents: 'this is a c&data s<>ction' }]
-    ]
-  ));
+  expectEvents('<![CDATA[this is a c&data s<>ction]]>', [['cdata', { contents: 'this is a c&data s<>ction' }]]));
 
 test('should parse CDATA sections between two chunks', () =>
-  expectEvents(
-    ['<', '!', '[', 'C', 'D', 'A', 'T', 'A', '[', 'contents]]>'],
-    [
-      ['cdata', { contents: 'contents' }]
-    ]
-  ));
+  expectEvents(['<', '!', '[', 'C', 'D', 'A', 'T', 'A', '[', 'contents]]>'], [['cdata', { contents: 'contents' }]]));
 
 test('should not parse invalid CDATA sections', () =>
-  expectEvents(
-    ['<![CDAthis is NOT a c&data s<>ction]]>'],
-    [
-      ['error', { message: 'Unrecognized sequence: <![' }]
-    ]
-  ));
+  expectEvents(['<![CDAthis is NOT a c&data s<>ction]]>'], [['error', { message: 'Unrecognized sequence: <![' }]]));
 
 test('should not parse unclosed CDATA sections', () =>
-  expectEvents(
-    '<![CDATA[this is a c&data s<>ction]>',
-    [
-      ['error', { message: 'Unclosed CDATA section' }]
-    ]
-  ));
+  expectEvents('<![CDATA[this is a c&data s<>ction]>', [['error', { message: 'Unclosed CDATA section' }]]));
 
 test('should parse processing instructions', () =>
-  expectEvents(
-    '<?xml version="1.0" encoding="UTF-8" ?>',
-    [
-      ['processinginstruction', { contents: 'xml version="1.0" encoding="UTF-8" ' }]
-    ]
-  ));
+  expectEvents('<?xml version="1.0" encoding="UTF-8" ?>', [
+    ['processinginstruction', { contents: 'xml version="1.0" encoding="UTF-8" ' }]
+  ]));
 
 test('should not parse unclosed processing instructions', () =>
-  expectEvents(
-    '<?xml version="1.0" encoding="UTF-8">',
-    [
-      ['error', { message: 'Unclosed processing instruction' }]
-    ]
-  ));
+  expectEvents('<?xml version="1.0" encoding="UTF-8">', [['error', { message: 'Unclosed processing instruction' }]]));
 
 test('should parse simple tags', () =>
-  expectEvents(
-    '<tag></tag>',
-    [
-      ['tagopen', { name: 'tag', attrs: '', isSelfClosing: false }],
-      ['tagclose', { name: 'tag' }]
-    ]
-  ));
+  expectEvents('<tag></tag>', [
+    ['tagopen', { name: 'tag', attrs: '', isSelfClosing: false }],
+    ['tagclose', { name: 'tag' }]
+  ]));
 
-test('should not parse unclosed opening tags', () =>
-  expectEvents(
-    '<tag',
-    [
-      ['error', { message: 'Unclosed tag' }]
-    ]
-  ));
+test('should not parse unclosed opening tags', () => expectEvents('<tag', [['error', { message: 'Unclosed tag' }]]));
 
-test('should not parse unclosed tags 2', () =>
-  expectEvents(
-    '<tag>',
-    [
-      ['error', { message: 'Unclosed tags: tag' }]
-    ]
-  ));
+test('should not parse unclosed tags 2', () => expectEvents('<tag>', [['error', { message: 'Unclosed tags: tag' }]]));
 
 test('should not parse unclosed tags 3', () =>
-  expectEvents(
-    '<closed><unclosed></closed>',
-    [
-      ['tagopen', { name: 'closed', attrs: '', isSelfClosing: false }],
-      ['tagopen', { name: 'unclosed', attrs: '', isSelfClosing: false }],
-      ['error', { message: 'Unclosed tag: unclosed' }],
-    ]
-  ));
+  expectEvents('<closed><unclosed></closed>', [
+    ['tagopen', { name: 'closed', attrs: '', isSelfClosing: false }],
+    ['tagopen', { name: 'unclosed', attrs: '', isSelfClosing: false }],
+    ['error', { message: 'Unclosed tag: unclosed' }]
+  ]));
 
 test('should not parse DOCTYPEs', () =>
-  expectEvents(
-    '<!DOCTYPE html>',
-    [
-      ['error', { message: 'Unrecognized sequence: <!D' }]
-    ]
-  ));
+  expectEvents('<!DOCTYPE html>', [['error', { message: 'Unrecognized sequence: <!D' }]]));
 
 test('should not parse invalid tags', () =>
-  expectEvents(
-    '< invalid>',
-    [
-      ['error', { message: 'Tag names may not start with whitespace' }]
-    ]
-  ));
+  expectEvents('< invalid>', [['error', { message: 'Tag names may not start with whitespace' }]]));
 
 test('should parse self-closing tags', () =>
-  expectEvents(
-    '<test />',
-    [
-      ['tagopen', { name: 'test', attrs: ' ', isSelfClosing: true }]
-    ]
-  ));
+  expectEvents('<test />', [['tagopen', { name: 'test', attrs: ' ', isSelfClosing: true }]]));
 
 test('should parse closing tags', () =>
-  expectEvents(
-    '<closed></closed>',
-    [
-      ['tagopen', { name: 'closed', attrs: '', isSelfClosing: false }],
-      ['tagclose', { name: 'closed' }]
-    ]
-  ));
+  expectEvents('<closed></closed>', [
+    ['tagopen', { name: 'closed', attrs: '', isSelfClosing: false }],
+    ['tagclose', { name: 'closed' }]
+  ]));
 
 test('should not parse unclosed closing tags', () =>
-  expectEvents(
-    '</closed',
-    [
-      ['error', { message: 'Unclosed tag' }]
-    ]
-  ));
+  expectEvents('</closed', [['error', { message: 'Unclosed tag' }]]));
 
 test('should parse tags with attributes', () =>
-  expectEvents(
-    '<tag first="one" second="two"  third="three " /><other attr="value"></other>',
-    [
-      ['tagopen', { name: 'tag', attrs: ' first="one" second="two"  third="three " ', isSelfClosing: true }],
-      ['tagopen', { name: 'other', attrs: ' attr="value"', isSelfClosing: false }],
-      ['tagclose', { name: 'other' }]
-    ]
-  ));
+  expectEvents('<tag first="one" second="two"  third="three " /><other attr="value"></other>', [
+    ['tagopen', { name: 'tag', attrs: ' first="one" second="two"  third="three " ', isSelfClosing: true }],
+    ['tagopen', { name: 'other', attrs: ' attr="value"', isSelfClosing: false }],
+    ['tagclose', { name: 'other' }]
+  ]));
 
 test('should parse tags with attributes containing ">"', () =>
-  expectEvents(
-    '<tag assert="5 > 1" />',
-    [
-      ['tagopen', { name: 'tag', attrs: ' assert="5 > 1" ', isSelfClosing: true }],
-    ]
-  ));
+  expectEvents('<tag assert="5 > 1" />', [
+    ['tagopen', { name: 'tag', attrs: ' assert="5 > 1" ', isSelfClosing: true }]
+  ]));
 
 test('should parse text nodes', () =>
-  expectEvents(
-    '<textarea> this\nis\na\r\n\ttextual\ncontent  </textarea>',
-    [
-      ['tagopen', { name: 'textarea', attrs: '', isSelfClosing: false }],
-      ['text', { contents: ' this\nis\na\r\n\ttextual\ncontent  ' }],
-      ['tagclose', { name: 'textarea' }]
-    ]
-  ));
+  expectEvents('<textarea> this\nis\na\r\n\ttextual\ncontent  </textarea>', [
+    ['tagopen', { name: 'textarea', attrs: '', isSelfClosing: false }],
+    ['text', { contents: ' this\nis\na\r\n\ttextual\ncontent  ' }],
+    ['tagclose', { name: 'textarea' }]
+  ]));
 
 test('should parse text nodes outside of the root element', () =>
-  expectEvents(
-    'before<root>inside</root>after',
-    [
-      ['text', { contents: 'before' }],
-      ['tagopen', { name: 'root', attrs: '', isSelfClosing: false }],
-      ['text', { contents: 'inside' }],
-      ['tagclose', { name: 'root' }],
-      ['text', { contents: 'after' }]
-    ]
-  ));
+  expectEvents('before<root>inside</root>after', [
+    ['text', { contents: 'before' }],
+    ['tagopen', { name: 'root', attrs: '', isSelfClosing: false }],
+    ['text', { contents: 'inside' }],
+    ['tagclose', { name: 'root' }],
+    ['text', { contents: 'after' }]
+  ]));
 
 test('should parse a complete document', () =>
   expectEvents(
@@ -270,9 +163,15 @@ test('should parse a complete document', () =>
       ['text', { contents: '\n    ' }],
       ['comment', { contents: ' List of persons ' }],
       ['text', { contents: '\n    ' }],
-      ['tagopen', { name: 'person', attrs: ' name="Priscilla Z. Holden" address="320-2518 Taciti Street" ', isSelfClosing: true }],
+      [
+        'tagopen',
+        { name: 'person', attrs: ' name="Priscilla Z. Holden" address="320-2518 Taciti Street" ', isSelfClosing: true }
+      ],
       ['text', { contents: '\n    ' }],
-      ['tagopen', { name: 'person', attrs: ' name="Raymond J. Garner" address="698-806 Dictum Road" ', isSelfClosing: true }],
+      [
+        'tagopen',
+        { name: 'person', attrs: ' name="Raymond J. Garner" address="698-806 Dictum Road" ', isSelfClosing: true }
+      ],
       ['text', { contents: '\n    ' }],
       ['tagopen', { name: 'person', attrs: ' name="Alfonso T. Yang" address="3689 Dolor Rd." ', isSelfClosing: true }],
       ['text', { contents: '\n' }],
@@ -299,14 +198,7 @@ test('streaming and full parse should result in the same events', async () => {
   const parser2 = new Saxophone(target2);
   const events2 = [];
 
-  [
-    'text',
-    'cdata',
-    'comment',
-    'processinginstruction',
-    'tagopen',
-    'tagclose'
-  ].forEach(type => {
+  ['text', 'cdata', 'comment', 'processinginstruction', 'tagopen', 'tagclose'].forEach(type => {
     target1.addEventListener(type, event => events1.push(event));
     target2.addEventListener(type, event => events2.push(event));
   });
@@ -318,7 +210,6 @@ test('streaming and full parse should result in the same events', async () => {
     // parser2 receives the data as several chunks through a piped stream
     createReadableStream(xml).pipeTo(parser2)
   ]);
-
 
   console.log('Here!');
   assert.equal(events1.length, events2.length);
@@ -341,7 +232,7 @@ function createReadableStream(xml, size = 9) {
         const chunk = await chunks[i++];
         controller.enqueue(chunk);
       }
-    },
+    }
   });
 }
 
